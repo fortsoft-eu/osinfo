@@ -1,0 +1,9 @@
+/Build/
+*.res
+*.zip
+*.dcu
+*.ddp
+*.dsk
+*.map
+*.tds
+*.~*
