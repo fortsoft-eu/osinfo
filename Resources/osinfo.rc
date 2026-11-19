@@ -28,8 +28,8 @@ MAINICON ICON "Resources\\icon.ico"
 1 24 "Resources\\osinfo.manifest"
 
 1 VERSIONINFO
-FILEVERSION 1,0,0,0
-PRODUCTVERSION 1,0,0,0
+FILEVERSION 1,0,0,1
+PRODUCTVERSION 1,0,0,1
 FILEFLAGSMASK 0x3F
 FILEFLAGS 0
 FILEOS 0x40004
@@ -42,12 +42,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "FortSoft\0"
             VALUE "FileDescription", "Windows system information.\0"
-            VALUE "FileVersion", "1.0.0.0\0"
+            VALUE "FileVersion", "1.0.0.1\0"
             VALUE "InternalName", "OSInfo\0"
             VALUE "LegalCopyright", "Copyright (c) Petr Cervinka - FortSoft 2026\0"
             VALUE "OriginalFilename", "osinfo.exe\0"
             VALUE "ProductName", "OS Info\0"
-            VALUE "ProductVersion", "1.0.0.0\0"
+            VALUE "ProductVersion", "1.0.0.1\0"
         END
     END
     BLOCK "VarFileInfo"
