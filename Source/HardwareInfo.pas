@@ -21,7 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-Last modified for version 1.0.0.0
+Last modified for version 1.0.0.1
 }
 
 // Reads hardware details and formats memory and disk capacities with ShowSize.
