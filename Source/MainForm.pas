@@ -96,6 +96,9 @@ type
         // Reapplies the Windows font after the system broadcasts a settings change.
         procedure WMSettingChange(var Message: TWMSettingChange); message WM_SETTINGCHANGE;
 
+        // Invalidates the form and its child controls after keyboard cues change.
+        procedure WMUpdateUIState(var Message: TMessage); message WM_UPDATEUISTATE;
+
     public
         // Detaches edit hooks before the form destroys their controls.
         destructor Destroy; override;
@@ -370,7 +373,7 @@ begin
         FriendlyDetails := FriendlyDetails + ' (' + KernelVersion + ')';
     end;
     Details := Details + ' ' + Language;
-    FriendlyDetails := FriendlyDetails + ' ' + UpperCase(Language);
+    FriendlyDetails := FriendlyDetails + ' ' + GetProcessorArchitecture(False) + ' ' + UpperCase(Language);
 
     ShortName := Name;
     if Edition <> '' then
@@ -438,6 +441,13 @@ procedure TMainForm.WMSettingChange(var Message: TWMSettingChange);
 begin
     inherited;
     ApplySystemDialogFont;
+end;
+
+// Invalidates the form and its child controls after keyboard cues change.
+procedure TMainForm.WMUpdateUIState(var Message: TMessage);
+begin
+    inherited;
+    RedrawWindow(Handle, nil, 0, RDW_INVALIDATE or RDW_ERASE or RDW_ALLCHILDREN);
 end;
 
 // Reloads every displayed value, including available .NET runtimes and current free capacities.

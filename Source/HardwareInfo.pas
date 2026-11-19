@@ -30,7 +30,7 @@ unit HardwareInfo;
 interface
 
 // Reports the native architecture, falling back to GetSystemInfo on older Windows.
-function GetProcessorArchitecture: string;
+function GetProcessorArchitecture(IncludeBitness: Boolean = True): string;
 
 // Reads the CPU name from the registry, with identifier and processor-family fallbacks.
 function GetProcessorModel: string;
@@ -112,7 +112,7 @@ type
     TGlobalMemoryStatusEx = function(var Status: TMemoryStatus64): BOOL; stdcall;
 
 // Reports the native architecture, falling back to GetSystemInfo on older Windows.
-function GetProcessorArchitecture: string;
+function GetProcessorArchitecture(IncludeBitness: Boolean): string;
 var
     SystemInfo: TSystemInfo;
     NativeSystemInfo: TGetNativeSystemInfo;
@@ -129,13 +129,27 @@ begin
     end;
 
     case Word(SystemInfo.dwOemId) of
-        0: Result := 'x86 (32-bit)';
+        0:
+        begin
+            Result := 'x86';
+            if IncludeBitness then
+            begin
+                Result := Result + ' (32-bit)';
+            end;
+        end;
         1: Result := 'MIPS';
         2: Result := 'Alpha';
         3: Result := 'PowerPC';
         5: Result := 'ARM';
         6: Result := 'IA-64';
-        9: Result := 'x64 (64-bit)';
+        9:
+        begin
+            Result := 'x64';
+            if IncludeBitness then
+            begin
+                Result := Result + ' (64-bit)';
+            end;
+        end;
         12: Result := 'ARM64';
     else
         Result := 'Unknown architecture';
