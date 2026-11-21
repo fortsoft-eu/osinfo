@@ -25,7 +25,7 @@ and inside virtual machines. The embedded icon and manifest do not need to be di
 | Operating system version | Windows name, version, build, service pack, DLL version, and language code. |
 | VirtualBox friendly name | A suggested machine name assembled from the local Windows information. |
 | Processor model | The processor name or identifier reported by Windows, with a legacy-family fallback. |
-| Processor architecture | The native Windows architecture, such as `x86 (32-bit)` or `x64 (64-bit)`. |
+| Processor architecture | The native Windows architecture, such as `x86 (32-bit)` or `x86-64 (64-bit)`. |
 | Processors | Physical core count and logical processor count, when both can be determined. |
 | Total RAM | Total physical memory visible to Windows, with currently available memory in parentheses. |
 | Total system disk size | Capacity of the volume containing Windows, with free space in parentheses. |
@@ -71,6 +71,12 @@ groups when the corresponding Windows API is available.
 Inside a virtual machine, processor details describe the processor information and topology exposed to the
 guest operating system. They need not match the physical host's processor model or core count.
 
+Architecture bitness describes the native Windows platform reported by `SYSTEM_INFO`.
+All recognized platforms include it: x86, MIPS, Alpha, PowerPC and ARM use `(32-bit)`; IA-64,
+x86-64 and ARM64 use `(64-bit)`. This is platform bitness, not necessarily the width of every CPU
+register or the full instruction set supported by the physical processor. Unknown architectures
+do not receive a guessed bitness. The shorter token in the VirtualBox-friendly name omits it.
+
 ### Memory and disk capacity
 
 Both fields show the total followed by the available capacity, for example:
@@ -110,6 +116,10 @@ service packs. The Framework 4.x entry uses the installed release information; i
 Modern shared runtimes are found in the `dotnet\shared` directories under the locations identified by
 `ProgramFiles`, `ProgramW6432`, `ProgramFiles(x86)`, and `DOTNET_ROOT`. Duplicate versions within each runtime
 family are combined. The display does not distinguish x86 and x64 installations.
+
+Every family, including .NET Framework, is sorted in ascending order by the numeric components
+separated by dots. Service-pack and preview numbers are compared numerically as well; a preview
+precedes its matching stable release.
 
 Detection reads registry entries and directory names without loading the runtimes. It does not validate an
 installation, list SDKs, or search every application directory for private or self-contained runtimes.

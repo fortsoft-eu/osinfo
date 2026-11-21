@@ -21,7 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-Last modified for version 1.0.0.0
+Last modified for version 1.1.0.0
 }
 
 // Detects installed Framework releases and shared runtimes without loading their binaries.
@@ -253,6 +253,163 @@ begin
     end;
 end;
 
+// Extracts dotted numeric components and returns any service-pack or prerelease suffix.
+function SplitVersion(const Version: string; Components: TStrings): string;
+var
+    Position: Integer;
+    NumericPart: string;
+begin
+    Position := 1;
+    while (Position <= Length(Version)) and (Version[Position] in ['0'..'9', '.']) do
+    begin
+        Inc(Position);
+    end;
+    NumericPart := Copy(Version, 1, Position - 1);
+    ExtractStrings(['.'], [], PChar(NumericPart), Components);
+    Result := Copy(Version, Position, MaxInt);
+end;
+
+// Reads a nonnegative numeric component without an integer-size limit.
+function ReadVersionNumber(const Version: string; var Position: Integer): string;
+var
+    Start: Integer;
+begin
+    Start := Position;
+    while (Position <= Length(Version)) and (Version[Position] in ['0'..'9']) do
+    begin
+        Inc(Position);
+    end;
+    Result := Copy(Version, Start, Position - Start);
+    while (Length(Result) > 1) and (Result[1] = '0') do
+    begin
+        Delete(Result, 1, 1);
+    end;
+end;
+
+// Compares numeric values exactly, including values larger than a native integer.
+function CompareVersionNumbers(const First, Second: string): Integer;
+begin
+    Result := Length(First) - Length(Second);
+    if Result = 0 then
+    begin
+        Result := CompareStr(First, Second);
+    end;
+end;
+
+// Orders service-pack numbers numerically and prereleases before their matching stable release.
+function CompareVersionSuffixes(const First, Second: string): Integer;
+var
+    FirstNumber: string;
+    SecondNumber: string;
+    FirstPosition: Integer;
+    SecondPosition: Integer;
+begin
+    FirstPosition := 1;
+    SecondPosition := 1;
+    while (FirstPosition <= Length(First)) and (SecondPosition <= Length(Second)) do
+    begin
+        if (First[FirstPosition] in ['0'..'9']) and (Second[SecondPosition] in ['0'..'9']) then
+        begin
+            FirstNumber := ReadVersionNumber(First, FirstPosition);
+            SecondNumber := ReadVersionNumber(Second, SecondPosition);
+            Result := CompareVersionNumbers(FirstNumber, SecondNumber);
+        end
+        else
+        begin
+            Result := Ord(First[FirstPosition]) - Ord(Second[SecondPosition]);
+            Inc(FirstPosition);
+            Inc(SecondPosition);
+        end;
+        if Result <> 0 then
+        begin
+            Exit;
+        end;
+    end;
+    Result := 0;
+    if FirstPosition <= Length(First) then
+    begin
+        if First[FirstPosition] = '-' then
+        begin
+            Result := -1;
+        end
+        else
+        begin
+            Result := 1;
+        end;
+    end
+    else if SecondPosition <= Length(Second) then
+    begin
+        if Second[SecondPosition] = '-' then
+        begin
+            Result := 1;
+        end
+        else
+        begin
+            Result := -1;
+        end;
+    end;
+end;
+
+// Compares corresponding dotted numeric components before comparing version suffixes.
+function CompareVersions(Versions: TStringList; FirstIndex, SecondIndex: Integer): Integer;
+var
+    FirstParts: TStringList;
+    SecondParts: TStringList;
+    FirstSuffix: string;
+    SecondSuffix: string;
+    FirstNumber: string;
+    SecondNumber: string;
+    Count: Integer;
+    Index: Integer;
+    Position: Integer;
+begin
+    FirstParts := TStringList.Create;
+    try
+        SecondParts := TStringList.Create;
+        try
+            FirstSuffix := SplitVersion(Versions[FirstIndex], FirstParts);
+            SecondSuffix := SplitVersion(Versions[SecondIndex], SecondParts);
+            Count := FirstParts.Count;
+            if SecondParts.Count > Count then
+            begin
+                Count := SecondParts.Count;
+            end;
+            for Index := 0 to Count - 1 do
+            begin
+                FirstNumber := '0';
+                if Index < FirstParts.Count then
+                begin
+                    Position := 1;
+                    FirstNumber := ReadVersionNumber(FirstParts[Index], Position);
+                end;
+                SecondNumber := '0';
+                if Index < SecondParts.Count then
+                begin
+                    Position := 1;
+                    SecondNumber := ReadVersionNumber(SecondParts[Index], Position);
+                end;
+                Result := CompareVersionNumbers(FirstNumber, SecondNumber);
+                if Result <> 0 then
+                begin
+                    Exit;
+                end;
+            end;
+            Result := CompareVersionSuffixes(FirstSuffix, SecondSuffix);
+        finally
+            SecondParts.Free;
+        end;
+    finally
+        FirstParts.Free;
+    end;
+end;
+
+// Applies ascending numeric version ordering to any collected .NET family.
+procedure SortVersions(Versions: TStringList);
+begin
+    Versions.Sorted := False;
+    Versions.CustomSort(CompareVersions);
+end;
+
 // Appends a nonempty runtime family and its comma-separated version list.
 procedure AppendVersions(var Text: string; const Heading: string; Versions: TStrings);
 var
@@ -299,6 +456,11 @@ begin
 
         CollectFrameworkVersions(Framework);
         CollectModernVersions(Core, Desktop, AspNet);
+
+        SortVersions(Framework);
+        SortVersions(Core);
+        SortVersions(Desktop);
+        SortVersions(AspNet);
 
         Result := '';
         AppendVersions(Result, '.NET Framework', Framework);

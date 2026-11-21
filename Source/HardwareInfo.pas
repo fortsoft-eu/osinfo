@@ -21,7 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-Last modified for version 1.0.0.1
+Last modified for version 1.1.0.0
 }
 
 // Reads hardware details and formats memory and disk capacities with ShowSize.
@@ -29,7 +29,7 @@ unit HardwareInfo;
 
 interface
 
-// Reports the native architecture, falling back to GetSystemInfo on older Windows.
+// Reports native Windows architecture and bitness, using GetSystemInfo on older Windows.
 function GetProcessorArchitecture(IncludeBitness: Boolean = True): string;
 
 // Reads the CPU name from the registry, with identifier and processor-family fallbacks.
@@ -111,7 +111,48 @@ type
     // Optional extended memory query, kept dynamic for legacy Windows support.
     TGlobalMemoryStatusEx = function(var Status: TMemoryStatus64): BOOL; stdcall;
 
-// Reports the native architecture, falling back to GetSystemInfo on older Windows.
+// Formats every recognized native Windows architecture with optional platform bitness.
+function FormatProcessorArchitecture(Architecture: Word; IncludeBitness: Boolean): string;
+var
+    Bitness: Integer;
+begin
+    Bitness := 32;
+    case Architecture of
+        0: Result := 'x86';
+        1: Result := 'MIPS';
+        2: Result := 'Alpha';
+        3: Result := 'PowerPC';
+        5: Result := 'ARM';
+        6:
+        begin
+            Result := 'IA-64';
+            Bitness := 64;
+        end;
+        9:
+        begin
+            Result := 'x64';
+            Bitness := 64;
+            if IncludeBitness then
+            begin
+                Result := 'x86-64';
+            end;
+        end;
+        12:
+        begin
+            Result := 'ARM64';
+            Bitness := 64;
+        end;
+    else
+        Result := 'Unknown architecture';
+        Bitness := 0;
+    end;
+    if IncludeBitness and (Bitness <> 0) then
+    begin
+        Result := Result + ' (' + IntToStr(Bitness) + '-bit)';
+    end;
+end;
+
+// Reports native Windows architecture and bitness, using GetSystemInfo on older Windows.
 function GetProcessorArchitecture(IncludeBitness: Boolean): string;
 var
     SystemInfo: TSystemInfo;
@@ -127,33 +168,7 @@ begin
     begin
         GetSystemInfo(SystemInfo);
     end;
-
-    case Word(SystemInfo.dwOemId) of
-        0:
-        begin
-            Result := 'x86';
-            if IncludeBitness then
-            begin
-                Result := Result + ' (32-bit)';
-            end;
-        end;
-        1: Result := 'MIPS';
-        2: Result := 'Alpha';
-        3: Result := 'PowerPC';
-        5: Result := 'ARM';
-        6: Result := 'IA-64';
-        9:
-        begin
-            Result := 'x64';
-            if IncludeBitness then
-            begin
-                Result := Result + ' (64-bit)';
-            end;
-        end;
-        12: Result := 'ARM64';
-    else
-        Result := 'Unknown architecture';
-    end;
+    Result := FormatProcessorArchitecture(Word(SystemInfo.dwOemId), IncludeBitness);
 end;
 
 // Reads the CPU name from the registry, with identifier and processor-family fallbacks.
