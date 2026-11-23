@@ -21,15 +21,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  **
- * Last modified for version 1.1.0.0
+ * Last modified for version 1.1.1.0
  */
 
 MAINICON ICON "Resources\\icon.ico"
 1 24 "Resources\\osinfo.manifest"
 
 1 VERSIONINFO
-FILEVERSION 1,1,0,0
-PRODUCTVERSION 1,1,0,0
+FILEVERSION 1,1,1,0
+PRODUCTVERSION 1,1,1,0
 FILEFLAGSMASK 0x3F
 FILEFLAGS 0
 FILEOS 0x40004
@@ -42,12 +42,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "FortSoft\0"
             VALUE "FileDescription", "Brief Windows system information.\0"
-            VALUE "FileVersion", "1.1.0.0\0"
+            VALUE "FileVersion", "1.1.1.0\0"
             VALUE "InternalName", "OSInfo\0"
             VALUE "LegalCopyright", "Copyright (c) Petr Cervinka - FortSoft 2026\0"
             VALUE "OriginalFilename", "osinfo.exe\0"
             VALUE "ProductName", "OS Info\0"
-            VALUE "ProductVersion", "1.1.0.0\0"
+            VALUE "ProductVersion", "1.1.1.0\0"
         END
     END
     BLOCK "VarFileInfo"

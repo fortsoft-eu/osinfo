@@ -218,8 +218,7 @@ The executable, main form, and taskbar use the embedded `MAINICON` resource. The
 external file or from a Windows system DLL when the application runs. Replacing the source icon changes
 future builds; it does not change an executable that has already been built.
 
-The resource script also embeds the application manifest and executable version information. Keep the
-version in the resource script and manifest consistent when updating the application version.
+The resource script also embeds the application manifest and executable version information.
 
 ### Release package
 
@@ -272,13 +271,8 @@ Delphi creates `.~pas`, `.~dfm`, and similar backup files when backup-on-save is
 files, ZIP packages, and the `Build` directory from version control. Keep the `.pas`, `.dfm`, project options,
 and source resources.
 
-## Author and license
+## License
 
-**Version:** 1.1.0.0  
-**Author:** Petr Červinka — FortSoft  
-**Contact:** <cervinka@fortsoft.eu>
+OS Info is available under the [MIT License](license.txt).
 
-Copyright (c) 2026 Petr Červinka - FortSoft.
-
-OS Info is open-source software licensed under the MIT License. The complete license text is in `license.txt`
-and the source-file headers. The software is provided "AS IS", without warranty, under that license.
+Copyright © Petr Červinka — FortSoft 2026
