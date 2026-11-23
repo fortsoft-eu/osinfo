@@ -52,6 +52,18 @@ The friendly name normally starts with `Windows`. Names starting with `Server` u
 Windows Server 2003 includes `R2` when detected and the Standard, Enterprise, Datacenter, or Web designation.
 The first field includes `Edition`; the friendly name omits it, for example `W Server 2003 R2 Standard`.
 
+Longhorn identification uses the native version, full kernel DLL version, and the installed product/build
+metadata. It covers the early Longhorn branch, the 5.2.3790.1232 reset when explicitly identified, the later
+Longhorn previews, and parallel branches such as 5203. Vista Beta 1 and later beta/RC builds are marked
+`Vista (pre-release)`. The plain `Vista` name requires a matching released kernel baseline: 6000.16386,
+6001.18000, or 6002.18005, including later servicing revisions. Missing or ambiguous information is labeled
+explicitly rather than presented as a confirmed retail Vista installation. Server Longhorn and Server 2008
+pre-release builds are handled separately. A `longhorn_rtm` build-lab string does not make released Vista SP1
+a Longhorn preview. Preinstallation-environment product names are not treated as desktop Vista.
+
+The displayed OS name is identification, not an application-compatibility test. A development build can
+report NT 6.0 while lacking APIs supplied by the released Windows Vista.
+
 Windows 95 uses the familiar `4.00.950` release number, with the DLL version shown separately in parentheses.
 Releases identified by Windows as `B` or `C` include `OEM` in the displayed name.
 
@@ -262,7 +274,7 @@ and source resources.
 
 ## Author and license
 
-**Version:** 1.0.0.0  
+**Version:** 1.1.0.0  
 **Author:** Petr Červinka — FortSoft  
 **Contact:** <cervinka@fortsoft.eu>
 

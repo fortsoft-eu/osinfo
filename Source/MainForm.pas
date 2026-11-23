@@ -21,7 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-Last modified for version 1.0.0.1
+Last modified for version 1.1.1.0
 }
 
 // Displays system details and handles refresh, copying, and extended edit selection.
@@ -30,7 +30,7 @@ unit MainForm;
 interface
 
 uses
-    Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, StdCtrls, SelectionEdit;
+    Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, StdCtrls, SelectionEdit, WindowsRelease;
 
 type
     // Owns the information controls and their edit-selection handlers.
@@ -81,7 +81,7 @@ type
         FDotNetSelection: TSelectionEditHandler;
 
         // Reads kernel32.dll's file version; Win9x uses its three-part display format.
-        function GetKernelVersion(LegacyFormat: Boolean): string;
+        function GetKernelVersion(LegacyFormat: Boolean; out Version: TWindowsFileVersion): string;
 
         // Uses the System Properties release number for Windows 95 and the API version for other systems.
         procedure SetVersionInformation;
@@ -142,7 +142,7 @@ type
 {$R *.dfm}
 
 // Reads kernel32.dll's file version; Win9x uses its three-part display format.
-function TMainForm.GetKernelVersion(LegacyFormat: Boolean): string;
+function TMainForm.GetKernelVersion(LegacyFormat: Boolean; out Version: TWindowsFileVersion): string;
 var
     FileName: string;
     SystemDirectory: array[0..MAX_PATH] of Char;
@@ -153,6 +153,7 @@ var
     InfoSize: UINT;
 begin
     Result := '';
+    FillChar(Version, SizeOf(Version), 0);
     if GetSystemDirectory(SystemDirectory, SizeOf(SystemDirectory)) = 0 then
         Exit;
 
@@ -166,6 +167,11 @@ begin
         if GetFileVersionInfo(PChar(FileName), 0, Size, Buffer) and
             VerQueryValue(Buffer, '\', Pointer(Info), InfoSize) then
         begin
+            Version.Available := True;
+            Version.Major := HiWord(Info.dwFileVersionMS);
+            Version.Minor := LoWord(Info.dwFileVersionMS);
+            Version.Build := HiWord(Info.dwFileVersionLS);
+            Version.Revision := LoWord(Info.dwFileVersionLS);
             if LegacyFormat then
             begin
                 Result := Format('%d.%.2d.%d', [
@@ -227,6 +233,10 @@ var
     Language: string;
     VersionText: string;
     KernelVersion: string;
+    Kernel: TWindowsFileVersion;
+    ProductName: string;
+    BuildLab: string;
+    DevelopmentName: string;
     Details: string;
     FriendlyDetails: string;
     LanguageBuffer: array[0..15] of Char;
@@ -317,6 +327,20 @@ begin
         end;
     end;
 
+    KernelVersion := GetKernelVersion(OS.dwPlatformId = VER_PLATFORM_WIN32_WINDOWS, Kernel);
+    if (OS.dwPlatformId = VER_PLATFORM_WIN32_NT)
+            and ((OS.dwMajorVersion = 5) or ((OS.dwMajorVersion = 6) and (OS.dwMinorVersion = 0))) then
+    begin
+        ReadWindowsBuildMetadata(ProductName, BuildLab);
+        DevelopmentName := WindowsDevelopmentName(OS.dwMajorVersion, OS.dwMinorVersion,
+            BuildNumber, IsServer, Kernel, ProductName, BuildLab);
+        if DevelopmentName <> '' then
+        begin
+            Name := DevelopmentName;
+            Edition := '';
+        end;
+    end;
+
     if OS.dwPlatformId = VER_PLATFORM_WIN32_WINDOWS then
     begin
         if Name = '95' then
@@ -366,7 +390,6 @@ begin
         Details := Details + ' ' + ServicePack;
         FriendlyDetails := FriendlyDetails + ' ' + ShortServicePack;
     end;
-    KernelVersion := GetKernelVersion(OS.dwPlatformId = VER_PLATFORM_WIN32_WINDOWS);
     if KernelVersion <> '' then
     begin
         Details := Details + ' (' + KernelVersion + ')';

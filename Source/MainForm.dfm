@@ -172,9 +172,9 @@ object MainForm: TMainForm
   end
   object RefreshButton: TButton
     Left = 8
-    Top = 252
+    Top = 254
     Width = 75
-    Height = 25
+    Height = 23
     Anchors = [akLeft, akBottom]
     Caption = '&Refresh'
     TabOrder = 8
@@ -182,9 +182,9 @@ object MainForm: TMainForm
   end
   object CopyButton: TButton
     Left = 91
-    Top = 252
+    Top = 254
     Width = 75
-    Height = 25
+    Height = 23
     Anchors = [akLeft, akBottom]
     Caption = '&Copy'
     TabOrder = 9
@@ -192,9 +192,9 @@ object MainForm: TMainForm
   end
   object CloseButton: TButton
     Left = 372
-    Top = 252
+    Top = 254
     Width = 75
-    Height = 25
+    Height = 23
     Anchors = [akRight, akBottom]
     Cancel = True
     Caption = 'Close'
