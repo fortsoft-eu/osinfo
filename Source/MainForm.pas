@@ -81,7 +81,8 @@ type
         FDotNetSelection: TSelectionEditHandler;
 
         // Reads kernel32.dll's file version; Win9x uses its three-part display format.
-        function GetKernelVersion(LegacyFormat: Boolean; out Version: TWindowsFileVersion): string;
+        function GetKernelVersion(LegacyFormat: Boolean; out Version: TWindowsFileVersion;
+            out ReactOSVersion: string): string;
 
         // Uses the System Properties release number for Windows 95 and the API version for other systems.
         procedure SetVersionInformation;
@@ -142,7 +143,8 @@ type
 {$R *.dfm}
 
 // Reads kernel32.dll's file version; Win9x uses its three-part display format.
-function TMainForm.GetKernelVersion(LegacyFormat: Boolean; out Version: TWindowsFileVersion): string;
+function TMainForm.GetKernelVersion(LegacyFormat: Boolean; out Version: TWindowsFileVersion;
+    out ReactOSVersion: string): string;
 var
     FileName: string;
     SystemDirectory: array[0..MAX_PATH] of Char;
@@ -153,6 +155,7 @@ var
     InfoSize: UINT;
 begin
     Result := '';
+    ReactOSVersion := '';
     FillChar(Version, SizeOf(Version), 0);
     if GetSystemDirectory(SystemDirectory, SizeOf(SystemDirectory)) = 0 then
         Exit;
@@ -172,6 +175,7 @@ begin
             Version.Minor := LoWord(Info.dwFileVersionMS);
             Version.Build := HiWord(Info.dwFileVersionLS);
             Version.Revision := LoWord(Info.dwFileVersionLS);
+            ReactOSVersion := ReadReactOSVersion(Buffer, Info^);
             if LegacyFormat then
             begin
                 Result := Format('%d.%.2d.%d', [
@@ -233,10 +237,12 @@ var
     Language: string;
     VersionText: string;
     KernelVersion: string;
+    ReactOSVersion: string;
     Kernel: TWindowsFileVersion;
     ProductName: string;
     BuildLab: string;
     DevelopmentName: string;
+    FeatureVersion: string;
     Details: string;
     FriendlyDetails: string;
     LanguageBuffer: array[0..15] of Char;
@@ -251,8 +257,10 @@ begin
     end;
 
     IsServer := False;
+    ProductName := '';
     if OS.dwPlatformId = VER_PLATFORM_WIN32_NT then
     begin
+        ReadWindowsBuildMetadata(ProductName, BuildLab);
         RtlGetVersion := TRtlGetVersion(GetProcAddress(GetModuleHandle('ntdll.dll'), 'RtlGetVersion'));
         if Assigned(RtlGetVersion) then
         begin
@@ -327,11 +335,23 @@ begin
         end;
     end;
 
-    KernelVersion := GetKernelVersion(OS.dwPlatformId = VER_PLATFORM_WIN32_WINDOWS, Kernel);
+    if (OS.dwPlatformId = VER_PLATFORM_WIN32_NT)
+        and (OS.dwMajorVersion = 10)
+        and (OS.dwMinorVersion = 0)
+        and not IsServer then
+    begin
+        FeatureVersion := ReadWindowsFeatureVersion(BuildNumber);
+        if FeatureVersion <> '' then
+        begin
+            Name := Name + ' ' + FeatureVersion;
+        end;
+    end;
+
+    KernelVersion := GetKernelVersion(OS.dwPlatformId = VER_PLATFORM_WIN32_WINDOWS,
+        Kernel, ReactOSVersion);
     if (OS.dwPlatformId = VER_PLATFORM_WIN32_NT)
             and ((OS.dwMajorVersion = 5) or ((OS.dwMajorVersion = 6) and (OS.dwMinorVersion = 0))) then
     begin
-        ReadWindowsBuildMetadata(ProductName, BuildLab);
         DevelopmentName := WindowsDevelopmentName(OS.dwMajorVersion, OS.dwMinorVersion,
             BuildNumber, IsServer, Kernel, ProductName, BuildLab);
         if DevelopmentName <> '' then
@@ -421,6 +441,14 @@ begin
         begin
             FriendlyName := 'Windows ' + ShortName;
         end;
+    end;
+    if ReactOSVersion <> '' then
+    begin
+        FriendlyName := 'ReactOS ' + ReactOSVersion + ' NT';
+    end
+    else if SameText(Trim(ProductName), 'ReactOS') then
+    begin
+        FriendlyName := 'ReactOS NT';
     end;
     VirtualBoxNameEdit.Text := FriendlyName + ' ' + FriendlyDetails;
 end;
