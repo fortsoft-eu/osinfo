@@ -289,7 +289,8 @@ begin
         begin
             Result := 'Longhorn';
         end
-        else begin
+        else
+        begin
             Result := 'NT 6.0 (unidentified pre-release)';
         end;
     end
